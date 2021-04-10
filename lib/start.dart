@@ -134,6 +134,11 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                Text(
+                                    'You\'ve previously started a session which is still in progress. You can either resume it or start a new one.',
+                                    style: TextStyle(fontStyle: FontStyle.italic)
+                                ),
+                                Container(height: 10),
                                 ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       primary: Colors.orangeAccent, // background
@@ -141,19 +146,19 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
                                     ),
                                     onPressed: () => _startSession(_existingSession),
                                     child: Padding(
-                                        padding: EdgeInsets.fromLTRB(0, 16, 0, 16),
+                                        padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                                         child: Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Text("Resume session", style: TextStyle(fontSize: 20, fontWeight: FontWeight.normal, color: Colors.black)),
                                               Container(width: 10,),
-                                              Icon(Icons.save_outlined, size: 24, color: Colors.black)
+                                              Icon(Icons.upload_outlined, size: 24, color: Colors.black)
                                             ]
                                         )
                                     )
                                 ),
-                                HorizontalOrLine(label: 'OR', height: 72)
+                                HorizontalOrLine(label: 'OR', height: 96)
                               ]
                             )
                         )
@@ -195,11 +200,11 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
                                 }
                             ),
                             Padding(
-                              padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
+                              padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
                               child: _getFutureBuilder()
                             ),
                             Padding(
-                              padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                              padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
                               child: Text(getTreasureHuntTimeDetails(widget.treasureHunt, _now), textAlign: TextAlign.center, style: TextStyle(color: CodeCyprusAppTheme.codeCyprusAppGreen, fontStyle: FontStyle.italic))
                             ),
                             ElevatedButton(
