@@ -21,7 +21,7 @@ class TreasureHuntsListViewState extends State<TreasureHuntsListView> {
 
   _startTreasureHunt(TreasureHunt selectedTreasureHunt) {
     setState(() {
-      Navigator.push(context, new MaterialPageRoute(builder: (context) => new StartTreasureHunt(title: 'Enter your details', treasureHunt: selectedTreasureHunt), settings: RouteSettings(name: 'Start treasure hunt')));
+      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new StartTreasureHunt(title: 'Enter your details', treasureHunt: selectedTreasureHunt), settings: RouteSettings(name: 'Start treasure hunt')));
     });
   }
 

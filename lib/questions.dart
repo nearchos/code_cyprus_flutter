@@ -1,57 +1,91 @@
 import 'package:code_cyprus_app/networking.dart';
+import 'package:code_cyprus_app/util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bubble/bubble.dart';
-import 'dart:async';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 import 'model.dart';
 import 'theme.dart';
+import 'leaderboard.dart';
 
-class Questions extends StatefulWidget {
+class QuestionsAndAnswers extends StatefulWidget {
   final String title;
+  final TreasureHunt treasureHunt;
   final String session;
 
-  Questions({Key key, this.title, this.session}) : super(key: key);
+  QuestionsAndAnswers({Key key, @required this.title, @required this.treasureHunt, @required this.session}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => new QuestionsState();
+  State<StatefulWidget> createState() => new QuestionsAndAnswersState();
 }
 
-class QuestionsState extends State<Questions> {
+class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
 
-  Future<QuestionReply> _currentQuestionReply;
-  Future<AnswerReply> _currentAnswerReply;
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
-  _requestNextQuestion() {
-    debugPrint('request next question');
-    setState(() {
-      _currentQuestionReply = fetchQuestion(widget.session);
-    });
+  _clearSession(String session) async {
+    debugPrint('Clearing session with id: ${session}');
+    final SharedPreferences prefs = await _prefs;
+    prefs.remove(widget.treasureHunt.uuid);
   }
 
-  _submitAnswer(String answer) {
-    debugPrint('submit answer: ${answer}');
-    setState(() {
-      _currentAnswerReply = submitAnswer(widget.session, answer);
-    });
-  }
+  // used for the starting time countdown
+  Timer _timer;
+  DateTime _now = DateTime.now();
 
-  Future<QuestionReply> _questionReply;
-  Future<AnswerReply> _answerReply;
+  bool _loading = false;
+  String _error;
+  QuestionReply _questionReply;
+  AnswerReply _answerReply;
+  ScoreReply _scoreReply;
+
+  void _reloadQuestion() async {
+    // make http request
+    setState(() {
+      _loading = true;
+    });
+    final QuestionReply qr = await fetchQuestion(widget.session);
+    final ScoreReply sr = await score(widget.session);
+    if(qr.isError()) {
+      setState(() {
+        _loading = false;
+        _error = _questionReply.errorMessages.join(' / ');
+      });
+    } else {
+      setState(() {
+        _loading = false;
+        _error = null;
+        if(qr.completed) _clearSession(widget.session);
+        _questionReply = qr;
+        _scoreReply = sr;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _requestNextQuestion();
+
+    // start timer -- see https://stackoverflow.com/questions/54610121/flutter-countdown-timer
+    const oneSec = const Duration(seconds: 1);
+    _timer = Timer.periodic(oneSec, (timer) {
+      setState(() {
+        _now = DateTime.now();
+      });
+    });
+
+    _reloadQuestion();
   }
 
   @override
   void dispose() {
+    _timer.cancel();
     super.dispose();
   }
-
-  final _formKey = GlobalKey<FormState>();
-  final _myTeamTextEditingController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -68,20 +102,25 @@ class QuestionsState extends State<Questions> {
                   icon: Icon(Icons.arrow_back),
                   onPressed: () => Navigator.of(context).pop(false)
               ),
+              actions: [
+                IconButton(icon: Icon(Icons.leaderboard), tooltip: 'Leaderboard', onPressed: _showLeaderboard),
+                IconButton(icon: Icon(Icons.arrow_forward), tooltip: 'Skip', onPressed: _askToSkipQuestion),
+                IconButton(icon: Icon(Icons.refresh), tooltip: 'Reload', onPressed: _reloadQuestion)
+              ],
             ),
             body:
-            SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: Column(
+              Column(
                     mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      _getScoreWidget(),
                       Padding(
                         padding: EdgeInsets.fromLTRB(0, 20, 0, 32),
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Image.asset("images/fly.gif", height: 100.0, width: 100.0),
+                              Image.asset("images/sleepy.gif", height: 100.0, width: 100.0),
                               Expanded(
                                   child: Bubble(
                                       alignment: Alignment.topLeft,
@@ -89,62 +128,316 @@ class QuestionsState extends State<Questions> {
                                       nip: BubbleNip.leftCenter,
                                       nipWidth: 20,
                                       color: Colors.yellow.shade100,
-                                      child: RichText(
-                                          text: TextSpan(
-                                              children: [
-                                                TextSpan(text: 'You picked ', style: TextStyle(color: Colors.black, fontSize: 18)),
-                                                TextSpan(text: 'Hello', style: new TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 18)),
-                                                TextSpan(text: '. Enter your details and get ready to start the hunting...', style: TextStyle(color: Colors.black, fontSize: 18))
-                                              ]
-                                          )
-                                      )
+                                      // child: Text('Question', style: TextStyle(color: Colors.black, fontSize: 18))
+                                      child: _getQuestionTextUI()
+                                      // child: Container()
                                   )
                               )
                             ]
                         ),
                       ),
-                      Padding(
-                          padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
-                          child: Form(
-                              key: _formKey,
-                              child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: <Widget>[
-                                    Text('Question'),
-                                    TextFormField(
-                                        style: TextStyle(color: CodeCyprusAppTheme.codeCyprusAppRed, fontWeight: FontWeight.bold),
-                                        controller: _myTeamTextEditingController,
-                                        // The validator receives the text that the user has entered.
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter a non-empty answer';
-                                          // } else if(value.trim().contains(' ')) {
-                                          //   return 'The answer should not contain spaces';
-                                          }
-                                          return null;
-                                        }
-                                    ),
-                                    ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          primary: CodeCyprusAppTheme.codeCyprusAppGreen, // background
-                                          onPrimary: Colors.black, // foreground
-                                        ),
-                                        onPressed: _submitAnswer(_myTeamTextEditingController.text.trim()),
-                                        child: Container(
-                                            height: 50,
-                                            alignment: Alignment.center,
-                                            child: Text("Register", style: TextStyle(fontSize: 20, fontWeight: FontWeight.normal))
-                                        )
-                                    )
-                                  ]
-                              )
-                          )
-                      )
+                      _getFeedbackWidget(),
+                      _getInputWidget(),
+                      Container(),
                     ]
-                )
             )
         )
     );
+  }
+
+  Widget _getQuestionTextUI() {
+    if(_loading && _questionReply == null) {
+      return Center(child: Text('Loading ...'));
+    } else {
+      if (_error != null) {
+        return Text('Error: ${_error}',
+          style: TextStyle(color: Colors.red, fontStyle: FontStyle.italic));
+      } else if(_questionReply.completed) {
+        return Text('You have completed the treasure hunt!',
+            style: TextStyle(color: Colors.green, fontStyle: FontStyle.italic));
+      } else {
+        return Column(
+          children: [
+            Html(
+              data: "${_questionReply.questionText}",
+              onLinkTap: (String src) {
+                debugPrint('src: ${src}');
+                _showLink(src);
+              }
+            ),
+            Visibility(
+              visible: _questionReply.requiresLocation,
+              child: Row(
+                children: [
+                  Icon(Icons.location_on_outlined, color: Colors.green),
+                  Text("Requires location!", style: TextStyle(color: Colors.green, decoration: TextDecoration.underline))
+                ]
+              )
+            )
+          ]
+        );
+      }
+    }
+  }
+
+  // todo add option to 'remember' choice
+  void _showLink(String src) {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Open link?"),
+            content: Text('${src}'),
+            actions: [
+              TextButton(child: Text("Open"), onPressed: () {
+                _launchURL(src);
+                Navigator.of(context).pop();
+              }),
+              TextButton(child: Text("Cancel"), onPressed: () { Navigator.of(context).pop(); })
+            ],
+          );
+        }
+    );
+  }
+
+  _launchURL(String url) async =>
+      await canLaunch(url) ? await launch(url) : throw 'Could not launch $url';
+
+  Widget _getScoreWidget() {
+    return Container(
+      color: Colors.grey.shade300,
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Text('Score: ${_scoreReply == null ? 0 : _scoreReply.score}'),
+            Expanded(child: Container()),
+            Text('${getTreasureHuntEndingInDetails(widget.treasureHunt, _now)}')
+          ]
+        )
+      )
+    );
+  }
+
+  Widget _getFeedbackWidget() {
+    if(_loading || _answerReply == null) {
+      return Container();
+    } else {
+      return Padding(
+        padding: EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Icon(_answerReply.correct ? Icons.done : Icons.close, color: _answerReply.correct ? Colors.green : Colors.red),
+            Text('${_answerReply.correct ? 'Correct! ' : 'Nope. '}', style: TextStyle(color: _answerReply.correct ? Colors.green : Colors.red)),
+            Text('${_answerReply.message}', style: TextStyle(fontStyle: FontStyle.italic))
+          ]
+        )
+      );
+    }
+  }
+
+  Widget _getInputWidget() {
+    if(_loading) {
+      return Center(child: CircularProgressIndicator());
+    } else if(_questionReply.completed) {
+      return Row(children: [ElevatedButton(child: Row(children: [Icon(Icons.leaderboard), Text('Leaderboard')]), onPressed: _showLeaderboardNoReturn)], mainAxisAlignment: MainAxisAlignment.center,);
+    } else {
+      if(_error != null) {
+        return Container(); // empty widget - the error message is shown in the question text
+      } else {
+        if(_questionReply.questionType == QuestionType.BOOLEAN) {
+          return Padding(
+              padding: EdgeInsets.all(8),
+              child: _getBooleanAnswerArea()
+          );
+        } else if(_questionReply.questionType == QuestionType.MCQ) {
+          return Padding(
+              padding: EdgeInsets.all(8),
+              child: _getMcqAnswerArea()
+          );
+        } else if(_questionReply.questionType == QuestionType.INTEGER || _questionReply.questionType == QuestionType.NUMERIC) {
+          return Padding(
+              padding: EdgeInsets.all(8),
+              child: _getTextAnswerFormArea(true)
+          );
+        } else { // QuestionType.TEXT
+          return Padding(
+              padding: EdgeInsets.all(8),
+              child: _getTextAnswerFormArea(false)
+          );
+        }
+      }
+    }
+  }
+
+  final _formKey = GlobalKey<FormState>();
+  final _myAnswerTextEditingController = TextEditingController();
+
+  Widget _getTextAnswerFormArea(bool numeric) {
+    return Column(
+      children: [
+        Form(
+            key: _formKey,
+            child: TextFormField(
+                style: TextStyle(color: CodeCyprusAppTheme.codeCyprusAppRed, fontWeight: FontWeight.bold),
+                keyboardType: numeric ? TextInputType.number : TextInputType.text,
+                controller: _myAnswerTextEditingController,
+                // The validator receives the text that the user has entered.
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a non-empty answer';
+                  } else if(value.trim().contains(' ')) {
+                    return 'The answer should not contain spaces';
+                  }
+                  return null;
+                }
+            )
+        ),
+        ElevatedButton(
+          child: Text('Submit'),
+          onPressed: () {
+            if (_formKey.currentState.validate())  {
+              _submitAnswer(_myAnswerTextEditingController.text);
+            }
+          }
+        )
+      ],
+    );
+  }
+
+  Widget _getBooleanAnswerArea() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+            child: Text('True / Yes'),
+            onPressed: () => _submitAnswer('true')
+        ),
+        ElevatedButton(
+            child: Text('False / No'),
+            onPressed: () => _submitAnswer('false')
+        )
+      ],
+    );
+  }
+
+  Widget _getMcqAnswerArea() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        ElevatedButton(
+            child: Text('A'),
+            onPressed: () => _submitAnswer('A')
+        ),
+        ElevatedButton(
+            child: Text('B'),
+            onPressed: () => _submitAnswer('B')
+        ),
+        ElevatedButton(
+            child: Text('C'),
+            onPressed: () => _submitAnswer('C')
+        ),
+        ElevatedButton(
+            child: Text('D'),
+            onPressed: () => _submitAnswer('D')
+        )
+      ],
+    );
+  }
+
+  void _submitAnswer(String answer) async {
+    debugPrint('submitting answer \'${answer}\' ...'); // todo delete
+    setState(() {
+      _loading = true;
+    });
+    final AnswerReply ar = await submitAnswer(widget.session, answer);
+    final ScoreReply sr = await score(widget.session);
+    debugPrint('AnswerReply: ${ar}');
+    if(ar.isError()) {
+      setState(() {
+        _loading = false;
+        _error = ar.errorMessages.join(' / ');
+      });
+    } else {
+      _loading = false;
+      _error = null;
+      _answerReply = ar;
+      _scoreReply = sr;
+      if(ar.correct) {
+        _reloadQuestion();
+      }
+    }
+  }
+
+  void _askToSkipQuestion() {
+    debugPrint('skipping question ...');
+    //todo
+    if(!_questionReply.canBeSkipped) {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Cannot skip"),
+              content: Text('This question cannot be skipped.'),
+              actions: [
+                TextButton(child: Text("Ok, got it"), onPressed: () {
+                  Navigator.of(context).pop(); }
+                )
+              ],
+            );
+          }
+      );
+    } else {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Skip question?"),
+              content: Text('Are you sure you want to skip this question?'),
+              actions: [
+                TextButton(child: Text("Yes, skip it"), onPressed: () {
+                  _skipQuestion();
+                  Navigator.of(context).pop();
+                }),
+                TextButton(child: Text("No, I've changed my mind"), onPressed: () {
+                  Navigator.of(context).pop(); }
+                  )
+              ],
+            );
+          }
+      );
+    }
+  }
+
+  void _skipQuestion() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    SkipReply sr = await skip(widget.session);
+    if(sr.isError()) {
+      setState(() {
+        _loading = true;
+        _error = sr.errorMessages.join(' / ');
+      });
+    } else {
+      setState(() {
+        _loading = false;
+        _error = null;
+        _answerReply = null;
+        _reloadQuestion();
+      });
+    }
+  }
+
+  void _showLeaderboard() {
+    Navigator.push(context, new MaterialPageRoute(builder: (context) => new Leaderboard(title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
+  }
+
+  void _showLeaderboardNoReturn() {
+    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new Leaderboard(title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
   }
 }

@@ -67,7 +67,16 @@ class StartReply {
   }
 }
 
-enum QuestionType { BOOLEAN, INTEGER, NUMERIC, MCQ, TEXT }
+enum QuestionType { BOOLEAN, INTEGER, NUMERIC, MCQ, TEXT, UNKNOWN }
+
+extension InterpretFromString on QuestionType {
+  static QuestionType toQuestionType(String value) {
+    for(QuestionType questionType in QuestionType.values) {
+      if(questionType.toString().split('.').last == value) return questionType;
+    }
+    return QuestionType.UNKNOWN;
+  }
+}
 
 class QuestionReply {
   final String status;
@@ -87,7 +96,7 @@ class QuestionReply {
         status: json['status'],
         completed: json['completed'],
         questionText: json['questionText'],
-        questionType: json['questionType'],
+        questionType: InterpretFromString.toQuestionType(json['questionType']),
         canBeSkipped: json['canBeSkipped'],
         requiresLocation: json['requiresLocation'],
         numOfQuestions: json['numOfQuestions'],
@@ -124,5 +133,103 @@ class AnswerReply {
 
   bool isError() {
     return status == 'ERROR';
+  }
+}
+
+class SkipReply {
+  final String status;
+  final bool completed;
+  final String message;
+  final int scoreAdjustment;
+  final List<String> errorMessages;
+
+  SkipReply({@required this.status, this.completed, this.message, this.scoreAdjustment, this.errorMessages});
+
+  factory SkipReply.fromJson(Map<String, dynamic> json) {
+    return SkipReply(
+        status: json['status'],
+        completed: json['completed'],
+        message: json['message'],
+        scoreAdjustment: json['scoreAdjustment'],
+        errorMessages: json['errorMessages'] == null ? [] : new List<String>.from(json['errorMessages'])
+    );
+  }
+
+  bool isError() {
+    return status == 'ERROR';
+  }
+}
+
+class ScoreReply {
+  final String status;
+  final bool completed;
+  final bool finished;
+  final String player;
+  final int score;
+  final List<String> errorMessages;
+
+  ScoreReply({@required this.status, this.completed, this.finished, this.player, this.score, this.errorMessages});
+
+  factory ScoreReply.fromJson(Map<String, dynamic> json) {
+    return ScoreReply(
+        status: json['status'],
+        completed: json['completed'],
+        finished: json['finished'],
+        player: json['player'],
+        score: json['score'],
+        errorMessages: json['errorMessages'] == null ? [] : new List<String>.from(json['errorMessages'])
+    );
+  }
+
+  bool isError() {
+    return status == 'ERROR';
+  }
+}
+
+class LeaderboardReply {
+  final String status;
+  final int numOfPlayers;
+  final bool sorted;
+  final int limit;
+  final bool hasPrize;
+  final List<LeaderboardEntry> leaderboard;
+  final String treasureHuntName;
+  final List<String> errorMessages;
+
+  LeaderboardReply({@required this.status, this.numOfPlayers, this.sorted, this.limit, this.hasPrize, this.leaderboard, this.treasureHuntName, this.errorMessages});
+
+  factory LeaderboardReply.fromJson(Map<String, dynamic> json) {
+    var list = json["leaderboard"];
+    var listOfLeaderboardEntries = list.map((i) => LeaderboardEntry.fromJson(i)).toList();
+    return LeaderboardReply(
+        status: json['status'],
+        numOfPlayers: json['numOfPlayers'],
+        sorted: json['sorted'],
+        limit: json['limit'],
+        hasPrize: json['hasPrize'],
+        leaderboard: json['leaderboard'] == null ? [] : new List<LeaderboardEntry>.from(listOfLeaderboardEntries),
+        treasureHuntName: json['treasureHuntName'],
+        errorMessages: json['errorMessages'] == null ? [] : new List<String>.from(json['errorMessages'])
+    );
+  }
+
+  bool isError() {
+    return status == 'ERROR';
+  }
+}
+
+class LeaderboardEntry {
+  final String player;
+  final int score;
+  final int completionTime;
+
+  LeaderboardEntry({@required this.player, @required this.score, @required this.completionTime});
+
+  factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
+    return LeaderboardEntry(
+        player: json['player'],
+        score: json['score'],
+        completionTime: json['completionTime']
+    );
   }
 }

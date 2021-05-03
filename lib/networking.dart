@@ -62,3 +62,45 @@ Future<AnswerReply> submitAnswer(String session, String answer) async {
     throw Exception('Failed to submit answer');
   }
 }
+
+Future<SkipReply> skip(String session) async {
+  Uri uri = Uri.https(BASE_URL, 'th/api/skip', {'session': session});
+  final response = await http.get(uri);
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    return SkipReply.fromJson(jsonDecode(response.body));
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to submit answer');
+  }
+}
+
+Future<ScoreReply> score(String session) async {
+  Uri uri = Uri.https(BASE_URL, 'th/api/score', {'session': session});
+  final response = await http.get(uri);
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    return ScoreReply.fromJson(jsonDecode(response.body));
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to submit answer');
+  }
+}
+
+Future<LeaderboardReply> leaderboard(String session, bool sorted) async {
+  Uri uri = Uri.https(BASE_URL, 'th/api/leaderboard', {'session': session, 'sorted': sorted ? 'true' : 'false'});
+  final response = await http.get(uri);
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    return LeaderboardReply.fromJson(jsonDecode(response.body));
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to submit answer');
+  }
+}

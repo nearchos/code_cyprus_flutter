@@ -30,6 +30,31 @@ String getTreasureHuntTimeDetails(TreasureHunt treasureHunt, DateTime now) {
   return 'Currently running!';
 }
 
+String getTreasureHuntEndingInDetails(TreasureHunt treasureHunt, DateTime now) {
+  int endsOnAsMillisecondsSinceEpoch = treasureHunt.endsOn;
+  DateTime endsOnDateTime = DateTime.fromMillisecondsSinceEpoch(endsOnAsMillisecondsSinceEpoch);
+
+  // check if it has already ended
+  int endsInDays = endsOnDateTime.difference(now).inDays;
+  if(endsInDays >= 1) return 'Ends in ${endsInDays} days';
+  int endsInHours = endsOnDateTime.difference(now).inHours;
+  if(endsInHours >= 1) return 'Ends in ${endsInHours} hours';
+  int endsInMinutes = endsOnDateTime.difference(now).inMinutes;
+  if(endsInMinutes >= 1) return 'Ends in ${endsInMinutes} minutes';
+  int endsInSeconds = endsOnDateTime.difference(now).inSeconds;
+  if(endsInSeconds >= 1) return 'Ends in ${endsInSeconds} seconds';
+
+  // it is currently running
+  return 'Already ended';
+}
+
+bool isFinished(TreasureHunt treasureHunt, DateTime now) {
+  int endsOnAsMillisecondsSinceEpoch = treasureHunt.endsOn;
+  DateTime endsOnDateTime = DateTime.fromMillisecondsSinceEpoch(endsOnAsMillisecondsSinceEpoch);
+  bool isFinished = (now.difference(endsOnDateTime).inSeconds < 0) ? true : false;
+  return isFinished;
+}
+
 bool isNotFinishedAndStartsInInLessThan60Minutes(TreasureHunt treasureHunt, DateTime now) {
   int startsOnAsMillisecondsSinceEpoch = treasureHunt.startsOn;
   int endsOnAsMillisecondsSinceEpoch = treasureHunt.endsOn;

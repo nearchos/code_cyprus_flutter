@@ -82,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     elevation: 4,
                     color: Colors.yellow.shade100,
                     padding: BubbleEdges.all(20),
-                    child: Text('Ahoy pirates! And welcome to the Code Cyprus\' treasure hunt app!\n\nIf you have questions, select the help menu. When ready, click the button below to get started!', style: TextStyle(fontSize: 18))
+                    child: Text('Ahoy pirates! And welcome to the Code Cyprus\' treasure hunt app!\n\nIf you have questions, select the help menu. When ready, click the button below to get started!', style: TextStyle(fontSize: 16))
                 )
             ),
             Image.asset(
