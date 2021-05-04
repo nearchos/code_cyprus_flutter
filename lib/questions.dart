@@ -7,6 +7,7 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:location/location.dart';
 import 'dart:async';
 import 'model.dart';
 import 'theme.dart';
@@ -66,6 +67,9 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
     }
   }
 
+  final int delayForShowingCorrectAnswer = 5000; // show for 5 seconds
+  int _lastShownCorrect = 0;
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +79,10 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
     _timer = Timer.periodic(oneSec, (timer) {
       setState(() {
         _now = DateTime.now();
+        if(_answerReply != null && _answerReply.correct && _lastShownCorrect < _now.millisecondsSinceEpoch) {
+          _answerReply = null;
+        }
+        _updateLocation();
       });
     });
 
@@ -363,6 +371,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
       _loading = false;
       _error = null;
       _answerReply = ar;
+      _lastShownCorrect = _now.millisecondsSinceEpoch + delayForShowingCorrectAnswer;
       _scoreReply = sr;
       if(ar.correct) {
         _reloadQuestion();
@@ -439,5 +448,43 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
 
   void _showLeaderboardNoReturn() {
     Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new Leaderboard(title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
+  }
+
+  int _locationLastUpdatedTimestamp = 0;
+  final int delayForLocationUpdates = 30 * 1000; // 30 seconds
+
+  void _updateLocation() async {
+    if(_now.millisecondsSinceEpoch - _locationLastUpdatedTimestamp < delayForLocationUpdates) {
+      return; // no need for action so exit method
+    }
+
+    // remember this so we do not attempt it again sooner than 'delayForLocationUpdates' later
+    _locationLastUpdatedTimestamp = _now.millisecondsSinceEpoch;
+
+    Location location = new Location();
+
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+    LocationData _locationData;
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _locationData = await location.getLocation();
+    debugPrint('Location: (${_locationData.latitude}, ${_locationData.longitude})');
+    sendLocation(widget.session, _locationData.latitude, _locationData.longitude);
   }
 }

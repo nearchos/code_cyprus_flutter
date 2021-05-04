@@ -191,7 +191,7 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
 
                               Padding(
                                 padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                child: Text(getTreasureHuntTimeDetails(widget.treasureHunt, _now), textAlign: TextAlign.center, style: TextStyle(color: CodeCyprusAppTheme.codeCyprusAppGreen, fontStyle: FontStyle.italic))
+                                child: Text(_loading ? 'Loading ...' : getTreasureHuntTimeDetails(widget.treasureHunt, _now), textAlign: TextAlign.center, style: TextStyle(color: CodeCyprusAppTheme.codeCyprusAppGreen, fontStyle: FontStyle.italic))
                               ),
 
                               _loading ?

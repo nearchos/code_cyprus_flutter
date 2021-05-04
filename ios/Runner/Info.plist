@@ -44,5 +44,9 @@
       <string>http</string>
     </array>
 	<true/>
+	<key>NSLocationAlwaysUsageDescription</key>
+    <string>Your location is required for answering location-specific questions</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Your location is required for answering location-specific questions</string>
 </dict>
 </plist>

@@ -63,6 +63,20 @@ Future<AnswerReply> submitAnswer(String session, String answer) async {
   }
 }
 
+Future<LocationReply> sendLocation(String session, double latitude, double longitude) async {
+  Uri uri = Uri.https(BASE_URL, 'th/api/location', {'session': session, 'latitude': '${latitude}', 'longitude': '${longitude}'});
+  final response = await http.get(uri);
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    return LocationReply.fromJson(jsonDecode(response.body));
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to submit answer');
+  }
+}
+
 Future<SkipReply> skip(String session) async {
   Uri uri = Uri.https(BASE_URL, 'th/api/skip', {'session': session});
   final response = await http.get(uri);

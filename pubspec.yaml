@@ -24,7 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  http: 0.13.1
+  http: ^0.13.3
 
   bubble: ^1.2.1
 
@@ -35,6 +35,9 @@ dependencies:
 
   # https://pub.dev/packages/dotted_decoration
   dotted_decoration: ^2.0.0
+
+  # https://pub.dev/packages/location
+  location: ^4.1.1
 
 dev_dependencies:
   flutter_test:

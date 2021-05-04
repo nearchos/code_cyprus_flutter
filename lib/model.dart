@@ -136,6 +136,26 @@ class AnswerReply {
   }
 }
 
+class LocationReply {
+  final String status;
+  final String message;
+  final List<String> errorMessages;
+
+  LocationReply({@required this.status, this.message, this.errorMessages});
+
+  factory LocationReply.fromJson(Map<String, dynamic> json) {
+    return LocationReply(
+        status: json['status'],
+        message: json['message'],
+        errorMessages: json['errorMessages'] == null ? [] : new List<String>.from(json['errorMessages'])
+    );
+  }
+
+  bool isError() {
+    return status == 'ERROR';
+  }
+}
+
 class SkipReply {
   final String status;
   final bool completed;
