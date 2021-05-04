@@ -38,6 +38,11 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
     prefs.setString(widget.treasureHunt.uuid, session);
   }
 
+  Future<String> _getSecret() async {
+    SharedPreferences prefs = await _prefs;
+    return prefs.get('secret');
+  }
+
   _startSession(String session) {
     Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new QuestionsAndAnswers(title: 'Playing', treasureHunt: widget.treasureHunt, session: session), settings: RouteSettings(name: '${session}')));
   }
@@ -82,7 +87,8 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
     setState(() {
       _loading = true;
     });
-    _startReply = await startTreasureHunt(team, widget.treasureHunt);
+    String secret = await _getSecret();
+    _startReply = await startTreasureHunt(team, widget.treasureHunt, secret);
     if(_startReply.isError()) {
       setState(() {
         _loading = false;
@@ -108,6 +114,9 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
                   icon: Icon(Icons.arrow_back),
                   onPressed: () => Navigator.of(context).pop(false)
               ),
+              actions: [
+                IconButton(icon: Icon(Icons.vpn_key), tooltip: 'Secret', onPressed: _enterSecretKey)
+              ]
             ),
             body: SingleChildScrollView(
               scrollDirection: Axis.vertical,
@@ -208,8 +217,6 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
                                       // you'd often call a server or save the information in a database.
                                       String team = _myTeamTextEditingController.text.trim();
                                       String email = ''; // todo
-                                      debugPrint('starting ${team} @ \'${widget.treasureHunt.name}\' ...');
-                                      //todo
                                       _makeRequest(team, email);
                                     }
                                   },
@@ -265,6 +272,35 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
               )
             )
         )
+    );
+  }
+
+  void _enterSecretKey() async {
+    final SharedPreferences prefs = await _prefs;
+    String secret;
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Admins only"),
+            content: TextField(
+              onChanged: (value) => secret = value,
+              controller: TextEditingController(),
+              obscureText: true,
+              decoration: InputDecoration(hintText: "Enter secret code (admins only)")
+            ),
+            actions: [
+              TextButton(child: Text("Save"), onPressed: () {
+                prefs.setString('secret', secret);
+                Navigator.of(context).pop(); }
+              ),
+              TextButton(child: Text("Cancel"), onPressed: () {
+                Navigator.of(context).pop(); }
+              )
+            ],
+          );
+        }
     );
   }
 }

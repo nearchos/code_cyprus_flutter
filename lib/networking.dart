@@ -21,8 +21,8 @@ Future<ListReply> fetchListOfTreasureHunts(bool includeFinished) async {
   }
 }
 
-Future<StartReply> startTreasureHunt(String team, TreasureHunt treasureHunt) async {
-  Uri uri = Uri.https(BASE_URL, 'th/api/start', {'player': team, 'app': APP_ID, 'treasure-hunt-id': treasureHunt.uuid});
+Future<StartReply> startTreasureHunt(String team, TreasureHunt treasureHunt, String secret) async {
+  Uri uri = Uri.https(BASE_URL, 'th/api/start', {'player': team, 'app': APP_ID, 'treasure-hunt-id': treasureHunt.uuid, 'code': secret});
   final response = await http.get(uri);
 
   if (response.statusCode == 200) {
@@ -35,8 +35,8 @@ Future<StartReply> startTreasureHunt(String team, TreasureHunt treasureHunt) asy
   }
 }
 
-Future<QuestionReply> fetchQuestion(String session) async {
-  Uri uri = Uri.https(BASE_URL, 'th/api/question', {'session': session});
+Future<QuestionReply> fetchQuestion(String session, String secret) async {
+  Uri uri = Uri.https(BASE_URL, 'th/api/question', {'session': session, 'code': secret});
   final response = await http.get(uri);
 
   if (response.statusCode == 200) {

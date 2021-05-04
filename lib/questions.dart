@@ -49,7 +49,8 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
     setState(() {
       _loading = true;
     });
-    final QuestionReply qr = await fetchQuestion(widget.session);
+    final String secret = await _getSecret();
+    final QuestionReply qr = await fetchQuestion(widget.session, secret);
     final ScoreReply sr = await score(widget.session);
     if(qr.isError()) {
       setState(() {
@@ -69,6 +70,11 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
 
   final int delayForShowingCorrectAnswer = 5000; // show for 5 seconds
   int _lastShownCorrect = 0;
+
+  Future<String> _getSecret() async {
+    SharedPreferences prefs = await _prefs;
+    return prefs.get('secret');
+  }
 
   @override
   void initState() {
@@ -116,8 +122,9 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
                 IconButton(icon: Icon(Icons.refresh), tooltip: 'Reload', onPressed: _reloadQuestion)
               ],
             ),
-            body:
-              Column(
+            body: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -148,6 +155,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
                       _getInputWidget(),
                       Container(),
                     ]
+              )
             )
         )
     );
@@ -233,12 +241,14 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
       return Container();
     } else {
       return Padding(
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.all(16),
         child: Row(
           children: [
             Icon(_answerReply.correct ? Icons.done : Icons.close, color: _answerReply.correct ? Colors.green : Colors.red),
             Text('${_answerReply.correct ? 'Correct! ' : 'Nope. '}', style: TextStyle(color: _answerReply.correct ? Colors.green : Colors.red)),
-            Text('${_answerReply.message}', style: TextStyle(fontStyle: FontStyle.italic))
+            Flexible(
+              child: Text('${_answerReply.message}', style: TextStyle(fontStyle: FontStyle.italic))
+            )
           ]
         )
       );
@@ -288,18 +298,19 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
         Form(
             key: _formKey,
             child: TextFormField(
-                style: TextStyle(color: CodeCyprusAppTheme.codeCyprusAppRed, fontWeight: FontWeight.bold),
-                keyboardType: numeric ? TextInputType.number : TextInputType.text,
-                controller: _myAnswerTextEditingController,
-                // The validator receives the text that the user has entered.
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a non-empty answer';
-                  } else if(value.trim().contains(' ')) {
-                    return 'The answer should not contain spaces';
-                  }
-                  return null;
+              autofocus: true,
+              style: TextStyle(color: CodeCyprusAppTheme.codeCyprusAppRed, fontWeight: FontWeight.bold),
+              keyboardType: numeric ? TextInputType.number : TextInputType.text,
+              controller: _myAnswerTextEditingController,
+              // The validator receives the text that the user has entered.
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a non-empty answer';
+                } else if(value.trim().contains(' ')) {
+                  return 'The answer should not contain spaces';
                 }
+                return null;
+              }
             )
         ),
         ElevatedButton(
@@ -375,6 +386,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
       _scoreReply = sr;
       if(ar.correct) {
         _reloadQuestion();
+        _myAnswerTextEditingController.text = '';
       }
     }
   }
