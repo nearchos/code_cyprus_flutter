@@ -68,7 +68,7 @@ class TreasureHuntsListViewState extends State<TreasureHuntsListView> {
             appBar: AppBar(
               title: Text(widget.title),
               leading: IconButton(icon: Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.of(context).pop(false)),
+                onPressed: () => Navigator.of(context).pop(false)),
             ),
             body: Center(
                 child: Column(
