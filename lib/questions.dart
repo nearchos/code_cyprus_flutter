@@ -124,37 +124,39 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
             ),
             body: SingleChildScrollView(
               scrollDirection: Axis.vertical,
-              child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _getScoreWidget(),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(0, 20, 0, 32),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Image.asset("images/sleepy.gif", height: 100.0, width: 100.0),
-                              Expanded(
-                                  child: Bubble(
-                                      alignment: Alignment.topLeft,
-                                      elevation: 4,
-                                      nip: BubbleNip.leftCenter,
-                                      nipWidth: 20,
-                                      color: Colors.yellow.shade100,
-                                      // child: Text('Question', style: TextStyle(color: Colors.black, fontSize: 18))
-                                      child: _getQuestionTextUI()
-                                      // child: Container()
-                                  )
-                              )
-                            ]
-                        ),
+              child: Container(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _getScoreWidget(),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image.asset("images/sleepy.gif", height: 100.0, width: 100.0),
+                            Expanded(
+                                child: Bubble(
+                                    alignment: Alignment.topLeft,
+                                    elevation: 4,
+                                    nip: BubbleNip.leftCenter,
+                                    nipWidth: 20,
+                                    color: Colors.yellow.shade100,
+                                    // child: Text('Question', style: TextStyle(color: Colors.black, fontSize: 18))
+                                    child: _getQuestionTextUI()
+                                    // child: Container()
+                                )
+                            )
+                          ]
                       ),
-                      _getFeedbackWidget(),
-                      _getInputWidget(),
-                      Container(),
-                    ]
+                    ),
+                    _getFeedbackWidget(),
+                    _getInputWidget(),
+                    Container(),
+                  ]
+                )
               )
             )
         )
@@ -238,26 +240,34 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
 
   Widget _getFeedbackWidget() {
     if(_loading || _answerReply == null) {
-      return Container();
+      return Container(
+          color: Colors.grey.shade100,
+          height: 64
+      );
     } else {
-      return Padding(
-        padding: EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(_answerReply.correct ? Icons.done : Icons.close, color: _answerReply.correct ? Colors.green : Colors.red),
-            Text('${_answerReply.correct ? 'Correct! ' : 'Nope. '}', style: TextStyle(color: _answerReply.correct ? Colors.green : Colors.red)),
-            Flexible(
-              child: Text('${_answerReply.message}', style: TextStyle(fontStyle: FontStyle.italic))
+      return Container(
+          color: Colors.grey.shade100,
+          height: 64,
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(_answerReply.correct ? Icons.done : Icons.close, color: _answerReply.correct ? Colors.green : Colors.red),
+                Text('${_answerReply.correct ? 'Correct! ' : 'Nope. '}', style: TextStyle(color: _answerReply.correct ? Colors.green : Colors.red)),
+                Flexible(
+                  child: Text('${_answerReply.message}', style: TextStyle(fontStyle: FontStyle.italic))
+                )
+              ]
             )
-          ]
-        )
+          )
       );
     }
   }
 
   Widget _getInputWidget() {
     if(_loading) {
-      return Center(child: CircularProgressIndicator());
+      return Container(height: 64, child: Center(child: CircularProgressIndicator()));
     } else if(_questionReply.completed) {
       return Row(children: [ElevatedButton(child: Row(children: [Icon(Icons.leaderboard), Text('Leaderboard')]), onPressed: _showLeaderboardNoReturn)], mainAxisAlignment: MainAxisAlignment.center,);
     } else {
