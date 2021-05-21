@@ -42,6 +42,9 @@ dependencies:
   # https://pub.dev/packages/package_info_plus
   package_info_plus: ^1.0.1
 
+  # https://pub.dev/packages/flutter_barcode_scanner
+  flutter_barcode_scanner: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

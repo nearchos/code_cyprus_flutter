@@ -48,5 +48,7 @@
     <string>Your location is required for answering location-specific questions</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Your location is required for answering location-specific questions</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Camera permission is required for barcode scanning.</string>
 </dict>
 </plist>

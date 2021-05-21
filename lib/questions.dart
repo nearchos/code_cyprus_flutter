@@ -1,6 +1,7 @@
 import 'package:code_cyprus_app/networking.dart';
 import 'package:code_cyprus_app/util.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bubble/bubble.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -8,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:location/location.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'dart:async';
 import 'model.dart';
 import 'theme.dart';
@@ -117,6 +119,10 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
                   onPressed: () => Navigator.of(context).pop(false)
               ),
               actions: [
+                Visibility(
+                  visible: !kIsWeb,
+                  child: IconButton(icon: Icon(Icons.qr_code), tooltip: 'Scan QR-Code', onPressed: _scanCode),
+                ),
                 IconButton(icon: Icon(Icons.leaderboard), tooltip: 'Leaderboard', onPressed: _showLeaderboard),
                 IconButton(icon: Icon(Icons.arrow_forward), tooltip: 'Skip', onPressed: _askToSkipQuestion),
                 IconButton(icon: Icon(Icons.refresh), tooltip: 'Reload', onPressed: _reloadQuestion)
@@ -269,7 +275,20 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
     if(_loading) {
       return Container(height: 64, child: Center(child: CircularProgressIndicator()));
     } else if(_questionReply.completed) {
-      return Row(children: [ElevatedButton(child: Row(children: [Icon(Icons.leaderboard), Text('Leaderboard')]), onPressed: _showLeaderboardNoReturn)], mainAxisAlignment: MainAxisAlignment.center,);
+      return Padding(
+        padding: EdgeInsets.all(8),
+        child: Row(
+            children: [
+              ElevatedButton(
+                  child: Row(children: [
+                    Icon(Icons.leaderboard),
+                    Text('Leaderboard')
+                  ]),
+                  onPressed: _showLeaderboardNoReturn)
+            ],
+            mainAxisAlignment: MainAxisAlignment.center
+        ),
+      );
     } else {
       if(_error != null) {
         return Container(); // empty widget - the error message is shown in the question text
@@ -323,6 +342,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
               }
             )
         ),
+        Container(height: 8),
         ElevatedButton(
           child: Text('Submit'),
           onPressed: () {
@@ -462,6 +482,22 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
         _reloadQuestion();
       });
     }
+  }
+
+  void _scanCode() async {
+    String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+        '#78C557',
+        'Cancel',
+        true,
+        ScanMode.QR);
+
+    debugPrint('Scanned: $barcodeScanRes');
+    // copy value in form
+    _myAnswerTextEditingController.value = _myAnswerTextEditingController.value.copyWith(
+      text: barcodeScanRes,
+      // selection: TextSelection.collapsed(offset: barcodeScanRes.length)
+      selection: TextSelection(baseOffset: 0, extentOffset: barcodeScanRes.length)
+    );
   }
 
   void _showLeaderboard() {
