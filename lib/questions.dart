@@ -184,10 +184,10 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
           children: [
             Html(
               data: "${_questionReply.questionText}",
-              onLinkTap: (String src) {
-                debugPrint('src: ${src}');
-                _showLink(src);
-              }
+              onLinkTap: (url, _, __, ___) {
+                debugPrint("Opening $url...");
+                _showLink(url);
+              },
             ),
             Visibility(
               visible: _questionReply.requiresLocation,
