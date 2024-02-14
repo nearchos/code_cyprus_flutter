@@ -1,10 +1,8 @@
-import 'package:flutter/cupertino.dart';
-
 class ListReply {
 
   List<TreasureHunt> treasureHunts;
 
-  ListReply({@required this.treasureHunts});
+  ListReply({required this.treasureHunts});
 
   factory ListReply.fromJson(Map<String, dynamic> json) {
 
@@ -26,7 +24,7 @@ class TreasureHunt {
   final int endsOn;
   final int maxDuration;
 
-  TreasureHunt({@required this.uuid, @required this.name, @required this.description, @required this.startsOn, @required this.endsOn, @required this.maxDuration, });
+  TreasureHunt({required this.uuid, required this.name, required this.description, required this.startsOn, required this.endsOn, required this.maxDuration});
 
   factory TreasureHunt.fromJson(Map<String, dynamic> json) {
     return TreasureHunt(
@@ -46,7 +44,7 @@ class StartReply {
   final int numOfQuestions;
   final List<String> errorMessages;
 
-  StartReply({@required this.status, this.session, this.numOfQuestions, this.errorMessages});
+  StartReply({required this.status, required this.session, required this.numOfQuestions, required this.errorMessages});
 
   bool isError() {
     return status == 'ERROR';
@@ -63,7 +61,7 @@ class StartReply {
 
   @override
   String toString() {
-    return '${status} - ${isError() ? errorMessages.join(' / ') : session}';
+    return '$status - ${isError() ? errorMessages.join(' / ') : session}';
   }
 }
 
@@ -89,7 +87,7 @@ class QuestionReply {
   final int currentQuestionIndex;
   final List<String> errorMessages;
 
-  QuestionReply({@required this.status, this.completed, this.questionText, this.questionType, this.canBeSkipped, this.requiresLocation, this.numOfQuestions, this.currentQuestionIndex, this.errorMessages});
+  QuestionReply({required this.status, required this.completed, required this.questionText, required this.questionType, required this.canBeSkipped, required this.requiresLocation, required this.numOfQuestions, required this.currentQuestionIndex, required this.errorMessages});
 
   factory QuestionReply.fromJson(Map<String, dynamic> json) {
     return QuestionReply(
@@ -118,7 +116,7 @@ class AnswerReply {
   final int scoreAdjustment;
   final List<String> errorMessages;
 
-  AnswerReply({@required this.status, this.correct, this.completed, this.message, this.scoreAdjustment, this.errorMessages});
+  AnswerReply({required this.status, required this.correct, required this.completed, required this.message, required this.scoreAdjustment, required this.errorMessages});
 
   factory AnswerReply.fromJson(Map<String, dynamic> json) {
     return AnswerReply(
@@ -141,7 +139,7 @@ class LocationReply {
   final String message;
   final List<String> errorMessages;
 
-  LocationReply({@required this.status, this.message, this.errorMessages});
+  LocationReply({required this.status,  required this.message, required this.errorMessages});
 
   factory LocationReply.fromJson(Map<String, dynamic> json) {
     return LocationReply(
@@ -163,7 +161,7 @@ class SkipReply {
   final int scoreAdjustment;
   final List<String> errorMessages;
 
-  SkipReply({@required this.status, this.completed, this.message, this.scoreAdjustment, this.errorMessages});
+  SkipReply({required this.status, required this.completed, required this.message, required this.scoreAdjustment, required this.errorMessages});
 
   factory SkipReply.fromJson(Map<String, dynamic> json) {
     return SkipReply(
@@ -188,7 +186,7 @@ class ScoreReply {
   final int score;
   final List<String> errorMessages;
 
-  ScoreReply({@required this.status, this.completed, this.finished, this.player, this.score, this.errorMessages});
+  ScoreReply({required this.status, required this.completed, required this.finished, required this.player, required this.score, required this.errorMessages});
 
   factory ScoreReply.fromJson(Map<String, dynamic> json) {
     return ScoreReply(
@@ -216,7 +214,7 @@ class LeaderboardReply {
   final String treasureHuntName;
   final List<String> errorMessages;
 
-  LeaderboardReply({@required this.status, this.numOfPlayers, this.sorted, this.limit, this.hasPrize, this.leaderboard, this.treasureHuntName, this.errorMessages});
+  LeaderboardReply({required this.status, required this.numOfPlayers, required this.sorted, required this.limit, required this.hasPrize, required this.leaderboard, required this.treasureHuntName, required this.errorMessages});
 
   factory LeaderboardReply.fromJson(Map<String, dynamic> json) {
     var list = json["leaderboard"];
@@ -243,7 +241,7 @@ class LeaderboardEntry {
   final int score;
   final int completionTime;
 
-  LeaderboardEntry({@required this.player, @required this.score, @required this.completionTime});
+  LeaderboardEntry({required this.player, required this.score, required this.completionTime});
 
   factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
     return LeaderboardEntry(

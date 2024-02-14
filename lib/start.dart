@@ -1,12 +1,9 @@
 import 'package:code_cyprus_app/networking.dart';
 import 'package:code_cyprus_app/questions.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bubble/bubble.dart';
 import 'package:dotted_decoration/dotted_decoration.dart';
 import 'dart:async';
-import 'package:email_validator/email_validator.dart';
-import 'package:flutter/rendering.dart';
 import 'model.dart';
 import 'util.dart';
 import 'theme.dart';
@@ -17,7 +14,7 @@ class StartTreasureHunt extends StatefulWidget {
   final String title;
   final TreasureHunt treasureHunt;
 
-  StartTreasureHunt({Key key, @required this.title, @required this.treasureHunt}) : super(key: key);
+  StartTreasureHunt({required Key key, required this.title, required this.treasureHunt}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new StartTreasureHuntState();
@@ -26,32 +23,32 @@ class StartTreasureHunt extends StatefulWidget {
 class StartTreasureHuntState extends State<StartTreasureHunt> {
 
   bool _loading = false;
-  String _error;
+  String? _error;
 
-  StartReply _startReply;
+  late StartReply _startReply;
 
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   _saveSession(String session) async {
-    debugPrint('Starting session with id: ${session}');
+    debugPrint('Starting session with id: $session');
     final SharedPreferences prefs = await _prefs;
     prefs.setString(widget.treasureHunt.uuid, session);
   }
 
   Future<String> _getSecret() async {
     SharedPreferences prefs = await _prefs;
-    return prefs.get('secret');
+    return prefs.getString('secret') ?? "";
   }
 
   _startSession(String session) {
-    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new QuestionsAndAnswers(title: 'Playing', treasureHunt: widget.treasureHunt, session: session), settings: RouteSettings(name: '${session}')));
+    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new QuestionsAndAnswers(key: widget.key!, title: 'Playing', treasureHunt: widget.treasureHunt, session: session), settings: RouteSettings(name: '$session')));
   }
 
   // used for the starting time countdown
-  Timer _timer;
+  late Timer _timer;
   DateTime _now = DateTime.now();
 
-  String _existingSession;
+  String? _existingSession;
 
   @override
   void initState() {
@@ -194,7 +191,7 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
                               Padding(
                                 padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
                                 child: _error != null ?
-                                  Text('Error: ${_error}', style: TextStyle(color: Colors.red, fontStyle: FontStyle.italic)) :
+                                  Text('Error: $_error', style: TextStyle(color: Colors.red, fontStyle: FontStyle.italic)) :
                                   Container()
                               ),
 
@@ -206,14 +203,11 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
                               _loading ?
                                 Center(child: CircularProgressIndicator()) :
                                 ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    primary: CodeCyprusAppTheme.codeCyprusAppGreen, // background
-                                    onPrimary: Colors.black, // foreground
-                                  ),
+                                  style: ElevatedButton.styleFrom(foregroundColor: Colors.black, backgroundColor: CodeCyprusAppTheme.codeCyprusAppGreen),
                                   onPressed: isNotFinishedAndStartsInInLessThan60Minutes(widget.treasureHunt, _now) ? null : () async {
                                     // Validate returns true if the form is valid, or false otherwise.
-                                    if (_formKey.currentState.validate()) {
-                                      // If the form is valid, display a snackbar. In the real world,
+                                    if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+                                      // If the form is valid, display a snack-bar. In the real world,
                                       // you'd often call a server or save the information in a database.
                                       String team = _myTeamTextEditingController.text.trim();
                                       String email = ''; // todo
@@ -246,11 +240,8 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
                             ),
                             Container(height: 10),
                             ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                primary: Colors.orangeAccent, // background
-                                onPrimary: Colors.black, // foreground
-                            ),
-                            onPressed: () => _startSession(_existingSession),
+                              style: ElevatedButton.styleFrom(foregroundColor: Colors.black, backgroundColor: Colors.orangeAccent),
+                            onPressed: () => _startSession(_existingSession!),
                             child: Padding(
                               padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                               child: Row(
@@ -277,7 +268,7 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
 
   void _enterSecretKey() async {
     final SharedPreferences prefs = await _prefs;
-    String secret;
+    String secret = "";
     showDialog(
         context: context,
         barrierDismissible: false,

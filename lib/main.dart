@@ -1,5 +1,4 @@
 import 'package:bubble/bubble.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -8,10 +7,18 @@ import 'list.dart';
 import 'theme.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const CodeCyprusApp());
 }
 
-class MyApp extends StatelessWidget {
+class CodeCyprusApp extends StatefulWidget {
+  const CodeCyprusApp({super.key});
+
+  @override
+  State<CodeCyprusApp> createState() => _CodeCyprusAppState();
+}
+
+class _CodeCyprusAppState extends State<CodeCyprusApp> {
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -19,14 +26,15 @@ class MyApp extends StatelessWidget {
       title: 'Code Cyprus App',
       theme: ThemeData(
         primarySwatch: CodeCyprusAppTheme.codeCyprusAppGreen,
+        useMaterial3: true
       ),
-      home: MyHomePage(title: 'Code Cyprus app'),
+      home: MyHomePage(key: widget.key!, title: 'Code Cyprus app'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({super.key, required this.title});
 
   final String title;
 
@@ -85,12 +93,12 @@ class _MyHomePageState extends State<MyHomePage> {
         return 'https://play.google.com/store/apps/details?id=org.codecyprus.android_client';
       } else if (Platform.isIOS) {
         // iOS-specific code
-        return null; // todo replace with app store marketplace URL for this app
+        return "todo"; // todo replace with app store marketplace URL for this app
       }
     } catch(e) {
       debugPrint('Error: $e');
     }
-    return null;
+    return "Error";
   }
 
   _about() async {
@@ -106,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: <Widget>[
                   _getListTile(Image.asset('images/pirate.png'), 'Code Cyprus', 'http://codecyprus.org', 'http://codecyprus.org'),
                   _getListTile(Icon(Icons.favorite), 'Love the app?', 'Rate us', _getMarketplaceLink()),
-                  _getListTile(Icon(Icons.build), 'Version', '${_version}', null),
+                  _getListTile(Icon(Icons.build), 'Version', '$_version', null),
                   _getListTile(Icon(Icons.code), 'Open Source Software', 'View on Github', 'https://github.com/nearchos/code_cyprus_flutter')
                 ]
               )
@@ -122,11 +130,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _start() {
     setState(() {
-      Navigator.push(context, new MaterialPageRoute(builder: (context) => new TreasureHuntsListView(title: 'Select treasure hunt'), settings: RouteSettings(name: 'Select treasure hunt')));
+      Navigator.push(context, new MaterialPageRoute(builder: (context) => new TreasureHuntsListView(key: widget.key!, title: 'Select treasure hunt'), settings: RouteSettings(name: 'Select treasure hunt')));
     });
   }
 
-  String _version;
+  late String _version;
 
   @override
   void initState() {
@@ -174,10 +182,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Padding(
               padding: EdgeInsets.fromLTRB(32, 48, 32, 0),
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  primary: CodeCyprusAppTheme.codeCyprusAppGreen, // background
-                  onPrimary: Colors.black, // foreground
-                ),
+                style: ElevatedButton.styleFrom(foregroundColor: Colors.black, backgroundColor: CodeCyprusAppTheme.codeCyprusAppGreen),
                 onPressed: _start,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(0, 16, 0, 16),
@@ -199,7 +204,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  _getListTile(graphics, final String title, final String subtitle, final String url) {
+  _getListTile(graphics, final String title, final String subtitle, final String? url) {
     return ListTile(
       leading: graphics == null ? null : graphics,
       title: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
@@ -210,6 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _launchURL(String url) async {
     // debugPrint('launching $url ...');
-    await canLaunch(url) ? await launch(url) : throw 'Could not launch $url';
+    final Uri uri = Uri.parse(url);
+    await canLaunchUrl(uri) ? await launchUrl(uri) : throw 'Could not launch $url';
   }
 }

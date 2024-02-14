@@ -1,11 +1,7 @@
 import 'package:code_cyprus_app/networking.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:bubble/bubble.dart';
-import 'package:flutter_html/flutter_html.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
-import 'package:flutter/rendering.dart';
 import 'model.dart';
 import 'theme.dart';
 
@@ -14,7 +10,7 @@ class Leaderboard extends StatefulWidget {
   final TreasureHunt treasureHunt;
   final String session;
 
-  Leaderboard({Key key, this.title, @required this.treasureHunt, @required this.session}) : super(key: key);
+  Leaderboard({required Key key, required this.title, required this.treasureHunt, required this.session}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new LeaderboardState();
@@ -23,10 +19,10 @@ class Leaderboard extends StatefulWidget {
 class LeaderboardState extends State<Leaderboard> {
 
   // check if we can use keyword late:  late Future<TreasureHunts> treasureHunts;
-  Future<LeaderboardReply> _leaderboardReply;
+  late Future<LeaderboardReply> _leaderboardReply;
 
   // used for the starting time countdown
-  Timer _timer;
+  late Timer _timer;
   DateTime _now = DateTime.now();
 
   @override
@@ -104,10 +100,10 @@ class LeaderboardState extends State<Leaderboard> {
                               return Center(child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text("${snapshot.error}");
-                            } else if (snapshot.data.isError()) {
-                              return Text("${snapshot.data.errorMessages.join(' / ')}");
+                            } else if (snapshot.data!.isError()) {
+                              return Text("${snapshot.data!.errorMessages.join(' / ')}");
                             } else {
-                              return _getLeaderboardView(snapshot.data);
+                              return _getLeaderboardView(snapshot.data!);
                             }
                           }
                         )

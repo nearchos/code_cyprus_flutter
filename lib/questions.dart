@@ -1,12 +1,10 @@
 import 'package:code_cyprus_app/networking.dart';
 import 'package:code_cyprus_app/util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bubble/bubble.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:location/location.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
@@ -20,7 +18,7 @@ class QuestionsAndAnswers extends StatefulWidget {
   final TreasureHunt treasureHunt;
   final String session;
 
-  QuestionsAndAnswers({Key key, @required this.title, @required this.treasureHunt, @required this.session}) : super(key: key);
+  QuestionsAndAnswers({required Key key, required this.title, required this.treasureHunt, required this.session}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new QuestionsAndAnswersState();
@@ -31,20 +29,20 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   _clearSession(String session) async {
-    debugPrint('Clearing session with id: ${session}');
+    debugPrint('Clearing session with id: $session');
     final SharedPreferences prefs = await _prefs;
     prefs.remove(widget.treasureHunt.uuid);
   }
 
   // used for the starting time countdown
-  Timer _timer;
+  late Timer _timer;
   DateTime _now = DateTime.now();
 
   bool _loading = false;
-  String _error;
-  QuestionReply _questionReply;
-  AnswerReply _answerReply;
-  ScoreReply _scoreReply;
+  String? _error;
+  late QuestionReply? _questionReply;
+  late AnswerReply? _answerReply;
+  late ScoreReply _scoreReply;
 
   void _reloadQuestion() async {
     // make http request
@@ -57,7 +55,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
     if(qr.isError()) {
       setState(() {
         _loading = false;
-        _error = _questionReply.errorMessages.join(' / ');
+        _error = _questionReply?.errorMessages.join(' / ');
       });
     } else {
       setState(() {
@@ -75,7 +73,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
 
   Future<String> _getSecret() async {
     SharedPreferences prefs = await _prefs;
-    return prefs.get('secret');
+    return prefs.getString('secret') ?? "";
   }
 
   @override
@@ -87,7 +85,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
     _timer = Timer.periodic(oneSec, (timer) {
       setState(() {
         _now = DateTime.now();
-        if(_answerReply != null && _answerReply.correct && _lastShownCorrect < _now.millisecondsSinceEpoch) {
+        if(_answerReply != null && _answerReply!.correct && _lastShownCorrect < _now.millisecondsSinceEpoch) {
           _answerReply = null;
         }
         _updateLocation();
@@ -173,24 +171,30 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
     if(_loading && _questionReply == null) {
       return Center(child: Text('Loading ...'));
     } else {
-      if (_error != null) {
-        return Text('Error: ${_error}',
+      if (_questionReply == null || _error != null) {
+        return Text('Error: $_error',
           style: TextStyle(color: Colors.red, fontStyle: FontStyle.italic));
-      } else if(_questionReply.completed) {
+      } else if(_questionReply!.completed) {
         return Text('You have completed the treasure hunt!',
             style: TextStyle(color: Colors.green, fontStyle: FontStyle.italic));
       } else {
         return Column(
           children: [
             Html(
-              data: "${_questionReply.questionText}",
-              onLinkTap: (url, _, __, ___) {
-                debugPrint("Opening $url...");
-                _showLink(url);
+              data: "${_questionReply?.questionText}",
+              onLinkTap: (url, attributes, element) {
+                  debugPrint("Opening $url...");
+                  if(url != null) {
+                    _showLink(url);
+                  }
               },
+              // onLinkTap: (url) {
+              //   debugPrint("Opening $url...");
+              //   _showLink(url);
+              // },
             ),
             Visibility(
-              visible: _questionReply.requiresLocation,
+              visible: _questionReply!.requiresLocation,
               child: Row(
                 children: [
                   Icon(Icons.location_on_outlined, color: Colors.green),
@@ -235,7 +239,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
         padding: EdgeInsets.all(8),
         child: Row(
           children: [
-            Text('Score: ${_scoreReply == null ? 0 : _scoreReply.score}'),
+            Text('Score: ${_scoreReply.score}'),
             Expanded(child: Container()),
             Text('${getTreasureHuntEndingInDetails(widget.treasureHunt, _now)}')
           ]
@@ -259,10 +263,10 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(_answerReply.correct ? Icons.done : Icons.close, color: _answerReply.correct ? Colors.green : Colors.red),
-                Text('${_answerReply.correct ? 'Correct! ' : 'Nope. '}', style: TextStyle(color: _answerReply.correct ? Colors.green : Colors.red)),
+                Icon(_answerReply!.correct ? Icons.done : Icons.close, color: _answerReply!.correct ? Colors.green : Colors.red),
+                Text('${_answerReply!.correct ? 'Correct! ' : 'Nope. '}', style: TextStyle(color: _answerReply!.correct ? Colors.green : Colors.red)),
                 Flexible(
-                  child: Text('${_answerReply.message}', style: TextStyle(fontStyle: FontStyle.italic))
+                  child: Text('${_answerReply!.message}', style: TextStyle(fontStyle: FontStyle.italic))
                 )
               ]
             )
@@ -273,8 +277,11 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
 
   Widget _getInputWidget() {
     if(_loading) {
-      return Container(height: 64, child: Center(child: CircularProgressIndicator()));
-    } else if(_questionReply.completed) {
+      return Container(
+          height: 64, child: Center(child: CircularProgressIndicator()));
+    } else if(_questionReply == null) {
+      return Center(child: Text('Error!', style: TextStyle(color: Colors.red)));
+    } else if(_questionReply!.completed) {
       return Padding(
         padding: EdgeInsets.all(8),
         child: Row(
@@ -293,17 +300,17 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
       if(_error != null) {
         return Container(); // empty widget - the error message is shown in the question text
       } else {
-        if(_questionReply.questionType == QuestionType.BOOLEAN) {
+        if(_questionReply!.questionType == QuestionType.BOOLEAN) {
           return Padding(
               padding: EdgeInsets.all(8),
               child: _getBooleanAnswerArea()
           );
-        } else if(_questionReply.questionType == QuestionType.MCQ) {
+        } else if(_questionReply!.questionType == QuestionType.MCQ) {
           return Padding(
               padding: EdgeInsets.all(8),
               child: _getMcqAnswerArea()
           );
-        } else if(_questionReply.questionType == QuestionType.INTEGER || _questionReply.questionType == QuestionType.NUMERIC) {
+        } else if(_questionReply!.questionType == QuestionType.INTEGER || _questionReply!.questionType == QuestionType.NUMERIC) {
           return Padding(
               padding: EdgeInsets.all(8),
               child: _getTextAnswerFormArea(true)
@@ -346,7 +353,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
         ElevatedButton(
           child: Text('Submit'),
           onPressed: () {
-            if (_formKey.currentState.validate())  {
+            if (_formKey.currentState != null && _formKey.currentState!.validate())  {
               _submitAnswer(_myAnswerTextEditingController.text);
             }
           }
@@ -424,7 +431,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
   void _askToSkipQuestion() {
     debugPrint('skipping question ...');
     //todo
-    if(!_questionReply.canBeSkipped) {
+    if(_questionReply != null && !_questionReply!.canBeSkipped) {
       showDialog(
           context: context,
           barrierDismissible: false,
@@ -501,11 +508,11 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
   }
 
   void _showLeaderboard() {
-    Navigator.push(context, new MaterialPageRoute(builder: (context) => new Leaderboard(title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
+    Navigator.push(context, new MaterialPageRoute(builder: (context) => new Leaderboard(key: widget.key!, title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
   }
 
   void _showLeaderboardNoReturn() {
-    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new Leaderboard(title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
+    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new Leaderboard(key: widget.key!, title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
   }
 
   int _locationLastUpdatedTimestamp = 0;
@@ -543,6 +550,6 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
 
     _locationData = await location.getLocation();
     debugPrint('Location: (${_locationData.latitude}, ${_locationData.longitude})');
-    sendLocation(widget.session, _locationData.latitude, _locationData.longitude);
+    sendLocation(widget.session, _locationData.latitude!, _locationData.longitude!);
   }
 }

@@ -9,7 +9,7 @@ import 'util.dart';
 class TreasureHuntsListView extends StatefulWidget {
   final String title;
 
-  TreasureHuntsListView({Key key, this.title}) : super(key: key);
+  TreasureHuntsListView({required Key key, required this.title}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new TreasureHuntsListViewState();
@@ -21,15 +21,15 @@ class TreasureHuntsListViewState extends State<TreasureHuntsListView> {
 
   _startTreasureHunt(TreasureHunt selectedTreasureHunt) {
     setState(() {
-      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new StartTreasureHunt(title: 'Enter your details', treasureHunt: selectedTreasureHunt), settings: RouteSettings(name: 'Start treasure hunt')));
+      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new StartTreasureHunt(key: widget.key!, title: 'Enter your details', treasureHunt: selectedTreasureHunt), settings: RouteSettings(name: 'Start treasure hunt')));
     });
   }
 
   // check if we can use keyword late:  late Future<TreasureHunts> treasureHunts;
-  Future<ListReply> _listReply;
+  late Future<ListReply> _listReply;
 
   // used for the starting time countdown
-  Timer _timer;
+  late Timer _timer;
   DateTime _now = DateTime.now();
 
   @override
@@ -82,7 +82,7 @@ class TreasureHuntsListViewState extends State<TreasureHuntsListView> {
                         children: [
                           Checkbox(value: _includeFinished, onChanged: (value) {
                             setState(() {
-                              _includeFinished = value;
+                              _includeFinished = value ?? false;
                               // make http request
                               _listReply = fetchListOfTreasureHunts(_includeFinished);
                             });
@@ -101,7 +101,7 @@ class TreasureHuntsListViewState extends State<TreasureHuntsListView> {
                           } else if (snapshot.hasError) {
                             return Text("${snapshot.error}");
                           } else {
-                            return _getListView(snapshot.data);
+                            return _getListView(snapshot.data!);
                           }
                         },
                       )
@@ -126,9 +126,7 @@ class TreasureHuntsListViewState extends State<TreasureHuntsListView> {
         itemBuilder: (BuildContext context, int index) {
           return ElevatedButton(
               style: ElevatedButton.styleFrom(
-                primary: index % 2 == 1 ? Colors.amber.shade100 : Colors.amber.shade300,
-                // background
-                onPrimary: Colors.black, // foreground
+                foregroundColor: Colors.black, backgroundColor: index % 2 == 1 ? Colors.amber.shade100 : Colors.amber.shade300, // foreground
               ),
               child: Padding(
                 padding: EdgeInsets.fromLTRB(0, 16, 0, 16),

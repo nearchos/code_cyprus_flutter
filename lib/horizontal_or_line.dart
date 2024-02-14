@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
-/**
- * https://stackoverflow.com/a/61304861
- */
+/// https://stackoverflow.com/a/61304861
 class HorizontalOrLine extends StatelessWidget {
   const HorizontalOrLine({
-    this.label,
-    this.height,
+    required this.label,
+    required this.height,
   });
 
   final String label;

@@ -64,7 +64,7 @@ Future<AnswerReply> submitAnswer(String session, String answer) async {
 }
 
 Future<LocationReply> sendLocation(String session, double latitude, double longitude) async {
-  Uri uri = Uri.https(BASE_URL, 'th/api/location', {'session': session, 'latitude': '${latitude}', 'longitude': '${longitude}'});
+  Uri uri = Uri.https(BASE_URL, 'th/api/location', {'session': session, 'latitude': '$latitude', 'longitude': '$longitude'});
   final response = await http.get(uri);
 
   if (response.statusCode == 200) {
