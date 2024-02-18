@@ -1,9 +1,7 @@
-# Code Cyprus Flutter-based Frontend
+# code_cyprus_flutter
 
-Code Cyprus cross-platform client app
+Code Cyprus cross-platform app
 
-Learn more about Code Cyprus at [codecyprus.org](https://codecyprus.org).
+## Create icons
 
-Learn about the backend API at [codecyprus.org/th/api](https://codecyprus.org/th/api).
-
-The current version of the Android client is available on [Google Play](https://play.google.com/store/apps/details?id=org.codecyprus.android_client).
+`dart run flutter_launcher_icons`

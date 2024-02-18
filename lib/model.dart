@@ -53,8 +53,8 @@ class StartReply {
   factory StartReply.fromJson(Map<String, dynamic> json) {
     return StartReply(
         status: json['status'],
-        session: json['session'],
-        numOfQuestions: json['numOfQuestions'],
+        session: json['status'] == 'ERROR' ? '' : json['session'],
+        numOfQuestions: json['status'] == 'ERROR' ? 0 : json['numOfQuestions'],
         errorMessages: json['errorMessages'] == null ? [] : new List<String>.from(json['errorMessages'])
     );
   }

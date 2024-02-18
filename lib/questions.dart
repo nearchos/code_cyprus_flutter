@@ -1,24 +1,24 @@
-import 'package:code_cyprus_app/networking.dart';
-import 'package:code_cyprus_app/util.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:bubble/bubble.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:location/location.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'dart:async';
-import 'model.dart';
 import 'theme.dart';
-import 'leaderboard.dart';
+import 'package:code_cyprus_app/networking.dart';
+import 'package:code_cyprus_app/util.dart';
+import 'package:code_cyprus_app/model.dart';
+import 'package:code_cyprus_app/leaderboard.dart';
 
 class QuestionsAndAnswers extends StatefulWidget {
   final String title;
   final TreasureHunt treasureHunt;
   final String session;
 
-  QuestionsAndAnswers({required Key key, required this.title, required this.treasureHunt, required this.session}) : super(key: key);
+  QuestionsAndAnswers({required Key? key, required this.title, required this.treasureHunt, required this.session}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new QuestionsAndAnswersState();
@@ -39,10 +39,11 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
   DateTime _now = DateTime.now();
 
   bool _loading = false;
-  String? _error;
-  late QuestionReply? _questionReply;
-  late AnswerReply? _answerReply;
-  late ScoreReply _scoreReply;
+  String? _error = null;
+  String? _locationError = null;
+  QuestionReply? _questionReply = null;
+  AnswerReply? _answerReply = null;
+  ScoreReply? _scoreReply = null;
 
   void _reloadQuestion() async {
     // make http request
@@ -51,7 +52,6 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
     });
     final String secret = await _getSecret();
     final QuestionReply qr = await fetchQuestion(widget.session, secret);
-    final ScoreReply sr = await score(widget.session);
     if(qr.isError()) {
       setState(() {
         _loading = false;
@@ -63,6 +63,22 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
         _error = null;
         if(qr.completed) _clearSession(widget.session);
         _questionReply = qr;
+        _reloadScore();
+      });
+    }
+  }
+
+  void _reloadScore() async {
+    final ScoreReply sr = await score(widget.session);
+    if(sr.isError()) {
+      setState(() {
+        _loading = false;
+        _error = _questionReply?.errorMessages.join(' / ');
+      });
+    } else {
+      setState(() {
+        _loading = false;
+        _error = null;
         _scoreReply = sr;
       });
     }
@@ -156,6 +172,13 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
                           ]
                       ),
                     ),
+                    Visibility(
+                      visible: _locationError != null,
+                      child: Padding(
+                        padding: EdgeInsets.all(8),
+                        child: Text('Location error: $_locationError', style: TextStyle(color: Colors.red, fontSize: 11)),
+                      )
+                    ),
                     _getFeedbackWidget(),
                     _getInputWidget(),
                     Container(),
@@ -239,7 +262,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
         padding: EdgeInsets.all(8),
         child: Row(
           children: [
-            Text('Score: ${_scoreReply.score}'),
+            Text('Score: ${_scoreReply == null ? 0 : _scoreReply!.score}'),
             Expanded(child: Container()),
             Text('${getTreasureHuntEndingInDetails(widget.treasureHunt, _now)}')
           ]
@@ -259,14 +282,15 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
           color: Colors.grey.shade100,
           height: 64,
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(_answerReply!.correct ? Icons.done : Icons.close, color: _answerReply!.correct ? Colors.green : Colors.red),
                 Text('${_answerReply!.correct ? 'Correct! ' : 'Nope. '}', style: TextStyle(color: _answerReply!.correct ? Colors.green : Colors.red)),
+                SizedBox(width: 8),
                 Flexible(
-                  child: Text('${_answerReply!.message}', style: TextStyle(fontStyle: FontStyle.italic))
+                  child: Text('${_answerReply!.message}', style: TextStyle(fontStyle: FontStyle.italic, fontSize: 11))
                 )
               ]
             )
@@ -475,7 +499,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
       _loading = true;
       _error = null;
     });
-    SkipReply sr = await skip(widget.session);
+    final SkipReply sr = await skip(widget.session);
     if(sr.isError()) {
       setState(() {
         _loading = true;
@@ -508,11 +532,53 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
   }
 
   void _showLeaderboard() {
-    Navigator.push(context, new MaterialPageRoute(builder: (context) => new Leaderboard(key: widget.key!, title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
+    Navigator.push(context, new MaterialPageRoute(builder: (context) => Leaderboard(key: widget.key, title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
   }
 
   void _showLeaderboardNoReturn() {
-    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new Leaderboard(key: widget.key!, title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
+    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => Leaderboard(key: widget.key, title: 'Leaderboard', treasureHunt: widget.treasureHunt, session: widget.session), settings: RouteSettings(name: 'Leaderboard for ${widget.session}')));
+  }
+
+  final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
+
+  Future<bool> _handlePermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+
+    // Test if location services are enabled.
+    serviceEnabled = await _geolocatorPlatform.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled
+      // don't continue accessing the position and request users of the
+      // App to enable the location services.
+      _locationError = 'Location service disabled - you must enable it first';
+
+      return false;
+    }
+
+    permission = await _geolocatorPlatform.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await _geolocatorPlatform.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, next time you could try
+        // requesting permissions again (this is also where
+        // Android's shouldShowRequestPermissionRationale
+        // returned true. According to Android guidelines
+        // your App should show an explanatory UI now.
+        _locationError = 'Location permission denied - you must approve them first';
+
+        return false;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _locationError = 'Location denied forever';
+      return false;
+    }
+
+    _locationError = null;
+    return true;
   }
 
   int _locationLastUpdatedTimestamp = 0;
@@ -523,33 +589,18 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
       return; // no need for action so exit method
     }
 
+    final hasPermission = await _handlePermission();
+
+    if (!hasPermission) {
+      return;
+    }
+
     // remember this so we do not attempt it again sooner than 'delayForLocationUpdates' later
     _locationLastUpdatedTimestamp = _now.millisecondsSinceEpoch;
 
-    Location location = new Location();
+    final position = await _geolocatorPlatform.getCurrentPosition();
 
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
-    LocationData _locationData;
-
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        return;
-      }
-    }
-
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-
-    _locationData = await location.getLocation();
-    debugPrint('Location: (${_locationData.latitude}, ${_locationData.longitude})');
-    sendLocation(widget.session, _locationData.latitude!, _locationData.longitude!);
+    debugPrint('Location: (${position.latitude}, ${position.longitude})');
+    sendLocation(widget.session, position.latitude, position.longitude);
   }
 }

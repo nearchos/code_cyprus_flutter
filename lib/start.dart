@@ -14,7 +14,7 @@ class StartTreasureHunt extends StatefulWidget {
   final String title;
   final TreasureHunt treasureHunt;
 
-  StartTreasureHunt({required Key key, required this.title, required this.treasureHunt}) : super(key: key);
+  StartTreasureHunt({required Key? key, required this.title, required this.treasureHunt}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new StartTreasureHuntState();
@@ -41,7 +41,7 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
   }
 
   _startSession(String session) {
-    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => new QuestionsAndAnswers(key: widget.key!, title: 'Playing', treasureHunt: widget.treasureHunt, session: session), settings: RouteSettings(name: '$session')));
+    Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => QuestionsAndAnswers(key: widget.key, title: 'Playing', treasureHunt: widget.treasureHunt, session: session), settings: RouteSettings(name: '$session')));
   }
 
   // used for the starting time countdown

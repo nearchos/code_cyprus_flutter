@@ -10,7 +10,7 @@ class Leaderboard extends StatefulWidget {
   final TreasureHunt treasureHunt;
   final String session;
 
-  Leaderboard({required Key key, required this.title, required this.treasureHunt, required this.session}) : super(key: key);
+  Leaderboard({required Key? key, required this.title, required this.treasureHunt, required this.session}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new LeaderboardState();
