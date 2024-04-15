@@ -8,4 +8,8 @@ Code Cyprus cross-platform app
 
 ## Launch a Web App
 
-Run `flutter build web`
+`flutter build web`
+
+## Build Web App
+
+`flutter build web --web-renderer html`

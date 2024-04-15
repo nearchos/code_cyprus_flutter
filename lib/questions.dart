@@ -1,3 +1,4 @@
+import 'package:dotted_decoration/dotted_decoration.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -178,7 +179,13 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
                       )
                     ),
                     _getFeedbackWidget(),
-                    _getInputWidget(),
+                    Padding(
+                      padding: EdgeInsets.all(4),
+                      child: Container(
+                        decoration: DottedDecoration(shape: Shape.box, borderRadius: BorderRadius.circular(8), color: Colors.black54),
+                        child: _getInputWidget(),
+                      )
+                    ),
                     Container(),
                   ]
                 )
@@ -251,7 +258,7 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
   }
 
   _launchURL(String url) async =>
-      await canLaunch(url) ? await launch(url) : throw 'Could not launch $url';
+      await canLaunchUrl(Uri.parse(url)) ? await launchUrl(Uri.parse(url)) : throw 'Could not launch $url';
 
   Widget _getScoreWidget() {
     return Container(
