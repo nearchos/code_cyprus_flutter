@@ -1,10 +1,10 @@
 import 'package:code_cyprus_app/networking.dart';
 import 'package:code_cyprus_app/questions.dart';
+import 'package:code_cyprus_app/model.dart';
 import 'package:flutter/material.dart';
-import 'package:bubble/bubble.dart';
 import 'package:dotted_decoration/dotted_decoration.dart';
+import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'dart:async';
-import 'model.dart';
 import 'util.dart';
 import 'theme.dart';
 import 'horizontal_or_line.dart';
@@ -119,35 +119,37 @@ class StartTreasureHuntState extends State<StartTreasureHunt> {
               scrollDirection: Axis.vertical,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.fromLTRB(0, 20, 0, 32),
+                    padding: EdgeInsets.fromLTRB(8, 20, 8, 32),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Image.asset("images/fly.gif", height: 100.0, width: 100.0),
                         Expanded(
-                          child: Bubble(
-                            alignment: Alignment.topLeft,
-                            elevation: 4,
-                            nip: BubbleNip.leftCenter,
-                            nipWidth: 20,
-                            color: Colors.yellow.shade100,
+                          child: ChatBubble(
+                            clipper: ChatBubbleClipper7(type: BubbleType.receiverBubble),
+                            alignment: Alignment.centerLeft,
+                            margin: EdgeInsets.all(10),
+                            shadowColor: Colors.black,
+                            backGroundColor: Colors.yellow[100],
                             child: RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(text: 'You picked ', style: TextStyle(color: Colors.black, fontSize: 18)),
-                                  TextSpan(text: '${widget.treasureHunt.name}', style: new TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 18)),
-                                  TextSpan(text: '. Enter your details and get ready to start the hunting...', style: TextStyle(color: Colors.black, fontSize: 18))
-                                ]
-                              )
+                                text: TextSpan(
+                                    children: [
+                                      TextSpan(text: 'You picked ', style: TextStyle(color: Colors.black, fontSize: 18)),
+                                      TextSpan(text: '${widget.treasureHunt.name}', style: new TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 18)),
+                                      TextSpan(text: '. Enter your details and get ready to start the hunting...', style: TextStyle(color: Colors.black, fontSize: 18))
+                                    ]
+                                )
                             )
                           )
                         )
                       ]
                     ),
                   ),
+                  Container(color: Colors.red, child: SizedBox(height: 20)),
                   Padding(
                     padding: EdgeInsets.fromLTRB(8, 0, 8, 10),
                     child: Form(

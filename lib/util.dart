@@ -1,4 +1,4 @@
-import 'model.dart';
+import 'package:code_cyprus_app/model.dart';
 
 String getTreasureHuntTimeDetails(TreasureHunt treasureHunt, DateTime now) {
   int startsOnAsMillisecondsSinceEpoch = treasureHunt.startsOn;

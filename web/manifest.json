@@ -1,11 +1,11 @@
 {
-    "name": "code_cyprus_flutter",
-    "short_name": "code_cyprus_flutter",
+    "name": "Code Cyprus",
+    "short_name": "Code Cyprus",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Code Cyprus Flutter App",
+    "description": "Code Cyprus Treasure Hunt App",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

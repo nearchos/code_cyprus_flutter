@@ -1,6 +1,6 @@
 import 'package:code_cyprus_app/networking.dart';
 import 'package:flutter/material.dart';
-import 'package:bubble/bubble.dart';
+import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'dart:async';
 import 'model.dart';
 import 'theme.dart';
@@ -74,13 +74,12 @@ class LeaderboardState extends State<Leaderboard> {
                           children: [
                             Image.asset("images/drums.gif", height: 100.0, width: 100.0),
                             Expanded(
-                                child: Bubble(
-                                    alignment: Alignment.topLeft,
-                                    elevation: 4,
-                                    nip: BubbleNip.leftCenter,
-                                    nipWidth: 20,
-                                    color: Colors.yellow.shade100,
-                                    // child: Text('Question', style: TextStyle(color: Colors.black, fontSize: 18))
+                                child: ChatBubble(
+                                    clipper: ChatBubbleClipper7(type: BubbleType.receiverBubble),
+                                    alignment: Alignment.centerLeft,
+                                    margin: EdgeInsets.all(10),
+                                    shadowColor: Colors.black,
+                                    backGroundColor: Colors.yellow[100],
                                     child: Text.rich(TextSpan(children: [
                                       TextSpan(text: 'The leaderboard for \'', style: TextStyle(fontSize: 18)),
                                       TextSpan(text: '${widget.treasureHunt.name}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),

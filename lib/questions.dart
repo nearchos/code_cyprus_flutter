@@ -1,7 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:bubble/bubble.dart';
+import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -158,15 +158,13 @@ class QuestionsAndAnswersState extends State<QuestionsAndAnswers> {
                           children: [
                             Image.asset("images/sleepy.gif", height: 100.0, width: 100.0),
                             Expanded(
-                                child: Bubble(
-                                    alignment: Alignment.topLeft,
-                                    elevation: 4,
-                                    nip: BubbleNip.leftCenter,
-                                    nipWidth: 20,
-                                    color: Colors.yellow.shade100,
-                                    // child: Text('Question', style: TextStyle(color: Colors.black, fontSize: 18))
-                                    child: _getQuestionTextUI()
-                                    // child: Container()
+                                child: ChatBubble(
+                                    clipper: ChatBubbleClipper7(type: BubbleType.receiverBubble),
+                                    alignment: Alignment.centerLeft,
+                                    margin: EdgeInsets.all(10),
+                                    shadowColor: Colors.black,
+                                    backGroundColor: Colors.yellow[100],
+                                    child:  _getQuestionTextUI()
                                 )
                             )
                           ]

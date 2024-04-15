@@ -1,4 +1,4 @@
-import 'package:bubble/bubble.dart';
+import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -139,11 +139,12 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Padding(
                 padding: EdgeInsets.fromLTRB(32, 0, 32, 48),
-                child: Bubble(
-                    alignment: Alignment.center,
-                    elevation: 4,
-                    color: Colors.yellow.shade100,
-                    padding: BubbleEdges.all(20),
+                child: ChatBubble(
+                    clipper: ChatBubbleClipper7(type: BubbleType.receiverBubble),
+                    alignment: Alignment.centerLeft,
+                    margin: EdgeInsets.all(10),
+                    shadowColor: Colors.black,
+                    backGroundColor: Colors.yellow[100],
                     child: Text('Ahoy pirates! And welcome to the Code Cyprus\' treasure hunt app!\n\nIf you have questions, select the help menu. When ready, click the button below to get started!', style: TextStyle(fontSize: 16))
                 )
             ),

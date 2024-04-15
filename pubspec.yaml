@@ -27,8 +27,8 @@ dependencies:
   # https://pub.dev/packages/http
   http: ^1.2.0
 
-  # https://pub.dev/packages/bubble
-  bubble: ^1.2.1
+  # https://pub.dev/packages/flutter_chat_bubble
+  flutter_chat_bubble: ^2.0.2
 
   # https://pub.dev/packages/email_validator
   email_validator: ^2.1.17
